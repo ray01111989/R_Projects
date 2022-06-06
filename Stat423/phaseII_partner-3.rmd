@@ -1,0 +1,135 @@
+---
+title: "PhaseI_partner"
+author: "Rawad Bader"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r data, include = FALSE}
+# Load the packages here
+library(dplyr)
+library(ggplot2)
+library(plotrix)
+library(readr)
+library(data.table)
+library(tidyverse)
+library(UsingR)
+library(reprex)
+library(tinytex)
+library(ggpubr)
+library(rstatix)
+library(infer)
+library(stats)
+library(ggstatsplot)
+```
+
+## read data
+```{r data1 }
+classdata <- read_csv("Classdata.csv",show_col_types = FALSE)
+```
+```{r summary1}
+classdata %>%
+  group_by(Early_riser) %>%
+  get_summary_stats(School_work_hours, type = "mean_sd")
+```
+##### Group 1:
+
+3.) Is there a significant difference in the average amount of time spent on school work 
+between early risers and non-early risers?  \
+
+$H_0$ : The mean of early risers group spend equal average time on school to non-early risers group. $\mu_{early-risers}$ = $\mu_{non-early-risers}$ \ 
+$H_a$ : The mean of early risers group spend not equal average time on school to non-early risers group. $\mu_{early-risers}$ != $\mu_{non-early-risers}$ \
+
+I check the Variances by creating two vectors. \
+
+```{r classdata}
+# here I take all the data vectors where X is the social media hours for early risers only and Y for non-early risers. 
+X <- classdata$School_work_hours[classdata$Early_riser=="Yes"]
+Y <- classdata$School_work_hours[classdata$Early_riser!="Yes"]
+
+var(X)
+var(Y)
+```
+The variances are not equal to each other and there is a deference between them.  \
+
+Assumption 1: Are the two samples independents? \
+
+We looked at the elements in the two-group data and checked if they have anything in common, we clearly realized that the early riser and non-early riser’ groups are not related or have any relationship between each other. After observing the data set, we concluded that the samples from early riser and non-early riser are not sharing and observations, in other words they are independent.
+
+Assumption 2: Are the data from each of the 2 groups follow a normal distribution? \
+
+Use **Shapiro-Wilk** normality test as described to check normality \
+
+```{r test normality}
+# Shapiro-Wilk normality test for computer Science time spend on social media
+with(classdata, shapiro.test(School_work_hours[Early_riser == "Yes"]))
+# Shapiro-Wilk normality test for Other Major time spend on social media
+with(classdata, shapiro.test(School_work_hours[Early_riser == "No"]))
+```
+From the output, the Both groups had a p-values is greater than the significance level 0.05 implying that the distribution of the data is not significantly different from the normal distribution. In other words, we can assume the normality. \
+
+Assumption 4: were the samples Obtained using random sampling? \
+
+Our sample wasn’t randomly collected, nor randomization was done after collection. Therefore, our analyses cannot be applied to the general population of the between early risers and non-early risers. \
+
+# Compute t-test
+
+```{r t-test}
+res <- t.test(X,Y)
+res
+```
+
+The p-value of the test is 0.719, which is greater than the significance level alpha = 0.05, it means we fail to reject the null hypothesis. We can conclude that no difference between early risers and non-early risers of time spent for school works. \
+
+### group 2:
+
+2.)  Is there an association between being a pet owner and being an early riser? \
+
+$H_0$: Pet owner and early riser person independent. \
+$H_a$: Pet owner and early riser person relate to each other. \
+
+Assumptions: \
+
+1) The row and column totals are fixed, not random. \
+
+We Observed that total number of rows and columns are fixed number. \
+
+2) sample was randomly selected. \
+
+Our sample wasn’t randomly collected, nor randomization was done after collection. Therefore, our analyses cannot be applied to the general population of the pet owners and early riser.  \
+
+3) data was mutually exclusive (ie observations did not fall into more than one cell. \
+
+We had to create a table and verified this assumption by checking that no individual has been counted in more than one cell. We establish that none of the individuals were counted more than once, and we met our assumption. 
+4)  independence. \
+
+Observation was made from analyzing the data in both sets and we established that none of our variables depands on other variables. \
+
+```{r table_data}
+Table <- table(classdata$Pet, classdata$Early_riser)
+names(dimnames(Table)) <- c("Pet", "Early riser")
+Table
+```
+```{r graph, warning=FALSE}
+ggbarstats(
+  classdata, Pet, Early_riser,
+  results.subtitle = FALSE,
+  subtitle = paste0(
+    "Fisher's exact test", ", p-value = ",
+    ifelse(test$p.value < 0.001, "< 0.001", round(test$p.value, 3))
+  )
+)
+```
+From the plot, it is clear that the proportion of pets among early riser is a littel higher than among non-early riser, suggesting that there are no a relationship between the two variables. \
+
+```{r Fisher_test}
+test <- fisher.test(table(classdata$Pet, classdata$Early_riser))
+test
+```
+This is confirmed thanks to the p-value displayed in the subtitle of the plot. As previously, we fail to reject the null hypothesis and we conclude that the variables pet ownership and being an early riser or not are independent with (p-value = 1).
+

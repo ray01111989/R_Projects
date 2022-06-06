@@ -1,0 +1,234 @@
+---
+title: "PhaseI"
+author: "Rawad Bader"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r data, include = FALSE}
+# Load the packages here
+library(dplyr)
+library(ggplot2)
+library(plotrix)
+library(readr)
+library(data.table)
+library(tidyverse)
+library(UsingR)
+library(reprex)
+library(tinytex)
+library(ggpubr)
+library(rstatix)
+```
+
+## read data
+```{r data1 }
+classdata <- read_csv("Classdata.csv",show_col_types = FALSE)
+```
+Here I ran some analysis for the data by visualizing each group and checking for normality. \
+
+```{r classdata}
+# here I take all the data vectors where X is the social media hours for computer science only and Y for other majors 
+X <- classdata$Social_media_hours[classdata$Major=="Computer Science"]
+Y <- classdata$Social_media_hours[classdata$Major!="Computer Science"]
+
+# F-test comparing the variability between both groups 
+res.ftest <- var.test(X , Y, data = classdata)
+res.ftest
+
+# create new data frame with a column has the cs and other majors. 
+classdata_update <- classdata %>% 
+  mutate(Group = case_when(Major == "Computer Science" ~ "CS_majors", 
+                               Major != "Computer Science" ~ "other_majors"))
+
+# graph the box polt for time Social media hours to see if they have big variability between.
+box <- ggplot(classdata_update, aes(y=Social_media_hours, x=Group, color=Group)) + geom_boxplot() + scale_x_discrete(guide = guide_axis(n.dodge=3))
+box
+
+ggp <- ggplot(classdata,aes(x= Social_media_hours)) +
+   geom_histogram(bins = 10,binwidth = 1.9, fill=I("#FF6347"), 
+      col=I("#00FF00"))+
+   labs(x = "Social Media hours", y = "count")
+ggp
+
+## Density graph 
+ggp2 <- ggplot( classdata,aes(x= Social_media_hours)) + geom_histogram(aes(y = ..density..),
+                   bins = 10,binwidth = 1.9, fill=I("green"), col=I("black"))+ geom_density(color = 8, fill = 10, alpha = 0.2)+
+ggtitle("Standard_Mercury per lake density") + theme(plot.title = element_text(hjust = 0.5)) + 
+  geom_vline(aes(xintercept=mean(Social_media_hours)), color="red", linetype="dashed", size=1) +
+geom_text(aes(x=mean(Social_media_hours), y=.09, label="mean", family="Times", fontface="italic"), size=5, angle=90, vjust=-0.6, hjust=-0.1,color="red") +
+geom_vline(aes(xintercept=median(Social_media_hours)), color="blue", linetype="dashed", size=1)+
+geom_text(aes(x=median(Social_media_hours), y=.09, label="Median", family="Times", fontface="italic"), size=5, angle=90, vjust=-0.4, hjust=0.4,color="blue")
+ggp2
+
+# QQ_plot to see of the data flow normal distribution
+ggplot (classdata,aes(sample=Social_media_hours))+
+stat_qq() + stat_qq_line(col = "steelblue", lwd = 1)+
+xlab("Z-scores")+
+ylab("Social Media Hours")
+
+```
+
+### Group #1: 
+
+1.)  Is the average time spent on social media significantly higher for Computer Science 
+majors than other fields of study?  \
+
+$H_0$ : The Computer Science majors spend equal average time on social media than other fields of study. \ 
+$H_a$ : The Computer Science majors spend greater average time on social media than other fields of study \
+
+
+I run summary for the school work hours for both groups. \
+
+```{r summary1}
+classdata_update %>%
+  group_by(Group) %>%
+  get_summary_stats(School_work_hours, type = "mean_sd")
+```
+
+#### Preleminary test to check independent t-test assumptions \
+
+Assumption 1: Are the two samples independents? \
+
+Yes, since the samples from computer Science and Other Major are not related. \
+
+Assumption 2: Are the data from each of the 2 groups follow a normal distribution? \
+
+Use **Shapiro-Wilk** normality test as described to check normality \
+
+```{r test normality}
+# Shapiro-Wilk normality test for computer Science time spend on social media
+with(classdata_update, shapiro.test(Social_media_hours[Group == "CS_majors"]))
+# Shapiro-Wilk normality test for Other Major time spend on social media
+with(classdata_update, shapiro.test(Social_media_hours[Group == "other_majors"]))
+#with(classdata, shapiro.test(Social_media_hours))
+```
+From the output, the first group p-values is greater than the significance level 0.05 implying that the distribution of the data is not significantly different from the normal distribution. In other words, we can assume the normality. but in the group second p-values is less than the significance level 0.05 implying that the distribution of the data is significantly different from the normal distribution. In other words, we can not assume the normality and is not drawn from a normal distribution. \
+
+```{r histogram}
+# creating a data frame just for computer Science 
+CS_major <- subset(classdata, Major == "Computer Science")
+
+# graph the data for Computer Science in a histogram.
+ggp <- ggplot(CS_major, aes(x= Social_media_hours, color=Major)) +
+   geom_histogram(fill=I("green"), 
+      col=I("red"), binwidth = 2)+ 
+  labs(x = "Social_media_hours", y = "Other Major")
+ggp
+
+# QQ_plot to see of the data flow normal distribution
+qqnorm(classdata_update$Social_media_hours[classdata_update$Group=="CS_majors"], pch = 1, frame = FALSE)
+qqline(classdata_update$Social_media_hours[classdata_update$Group=="CS_majors"], col = "steelblue", lwd = 2)
+
+```
+We can see from both graphs the histogram and the QQ plot that we can assume the data set have a normal distribution. \
+
+```{r histogram2}
+# creating a data frame just for other majors 
+Other_majors<-classdata[!(classdata$Major=="Computer Science"),]
+
+# graph the data for Other_majors in a histogram.
+ggp <- ggplot(Other_majors, aes(x= Social_media_hours, color=Major)) +
+   geom_histogram(fill=I("green"), 
+      col=I("red"), binwidth = 2)+ 
+  labs(x = "Social_media_hours", y = "Other Major")
+ggp
+
+# QQ_plot to see of the data flow normal distribution
+qqnorm(classdata_update$Social_media_hours[classdata_update$Group!="CS_majors"], pch = 1, frame = FALSE)
+qqline(classdata_update$Social_media_hours[classdata_update$Group!="CS_majors"], col = "steelblue", lwd = 2)
+
+```
+We can see from both graphs the histogram and the QQ plot that we can assume the data set very close to a normal distribution. \
+
+Assumption 3: Do the two populations have the same variances? \
+
+I run the F-test for the new data farm that I created with new column named Groups. \
+
+```{r F_test}
+res.ftest <- var.test(Social_media_hours ~ Group, data = classdata_update)
+res.ftest
+```
+The p-value of F-test is p = 0.8768. It’s greater than the significance level alpha = 0.05. In conclusion, there is no significant difference between the variances of the two sets of data. Therefore, we can use the classic t-test witch assume equality of the two variances. \
+
+Assumption 4: were the samples Obtained using random sampling? \
+
+No, therefore our analyses will not apply to the general population of the computer science major and non-computer science major. \
+
+I set the **var.equal = TRUE** because as I ran the F-test for the variances it show me there are no significant difference between the variances . \
+
+```{r t-test2, echo=FALSE, include=TRUE}
+# I run T-test here to check if CS it has a grater mean then the other majors 
+Computer_Science <- CS_major$Social_media_hours
+Other_Majors <- Other_majors$Social_media_hours
+T_test <- t.test(Computer_Science,Other_Majors, alternative = "greater", var.equal = TRUE) 
+T_test
+```
+The p-value of the test is 0.1574, which is greater than the significance level alpha = 0.05, it means we fail to reject the null hypothesis. We can conclude that CS major average time spent social media is significantly greater from other majors average time spent with a p-value = 0.1574. \
+
+### Group #2: 
+I run some bar graph Visualization to see the percentage of people like sushi or Pets. \
+
+```{r botpolt}
+# Get how many row entries we have in the data and graph them for Pet and Sushi 
+e <- sum(classdata$Pet == "Yes") + sum( classdata$Pet == "No")
+
+Graph_Sushi <- ggplot(classdata, aes(Sushi)) + geom_bar(aes(y = signif(..count../e * 100, 2), fill = Sushi), stat="count")+
+    geom_text(aes( label = paste("(",signif(..count../e * 100, 2),"%",")"),
+                   y= signif(..count../e * 100, 2)), stat= "count", vjust = -.5) +
+    labs(y = "Percent", fill="Sushi")
+Graph_Sushi
+
+Graph_Pet <- ggplot(classdata, aes(Pet)) + geom_bar(aes(y = signif(..count../e * 100, 2), fill = Pet), stat="count")+
+    geom_text(aes( label = paste("(",signif(..count../e * 100, 2),"%",")"),
+                   y= signif(..count../e * 100, 2)), stat= "count", vjust = -.5) +
+    labs(y = "Percent", fill="Pet")
+Graph_Pet
+```
+
+1.)  Is there an association between a person’s preference for sushi and pet ownership? \
+
+$H_0$: The person’s preference sushi and pet ownership are independent. \
+$H_a$: The person’s preference sushi and pet ownership relate to each other. \
+
+#### Preleminary test to check independent t-test assumptions \
+
+Assumption 1: Both variables are categorical? \
+
+Yes, since both sushi and pet ownership variables are categorical. \
+
+Assumption 2:  All observations are independent? \
+
+Our observations in the data set are independent and the value of one observation in the data set does not affect the value of any other observation. \
+
+Assumption 3: IS the cells in the contingency table are mutually exclusive? \
+
+Yes, because none of the individuals cells belong to another individuals cell. \
+
+Assumption 4: Expected value of cells should be 5 or greater in at least 80% of cells. \
+
+No, it is not 80% of cells but we are so close to it and none of the cells have an expected value less than 1. \
+
+```{r reading_data_table}
+Table_data <- table(classdata$Sushi, classdata$Pet)
+
+names(dimnames(Table_data)) <- c("Sushi", "Pet")
+Table_data
+```
+
+We can see there are 3 people they do not have preference for sushi and pet ownership, 6 people they do not have preference for sushi but they have preference for pet ownership, 4 people they do have preference for sushi but not pet ownership, and 13 people they do have preference for sushi and pet ownership. \
+
+In order to compute p-values we had to set this premature in the T-test **simulate.p.value = TRUE** when test conditions are not satisfied. \
+
+```{r, results='asis'}
+Chisq_Test <- chisq.test(Table_data, simulate.p.value = TRUE)
+Chisq_Test
+```
+
+We have a chi-squared value of 0.28748. Since we get a p-Value greater than the significance level of 0.05, we fail reject the null hypothesis and conclude that the two variables are in fact independent of each other.  \
+
+

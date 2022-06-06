@@ -1,0 +1,27 @@
+﻿ID,Sushi,Pet,Early_riser,Age,Major,Height,Hug_Length,School_work_hours,Social_media_hours,Credit_hours,Exam
+1,No,Yes,No,32,Applied Mathematics,64,3,60,1,13,group
+2,Yes,Yes,No,30,Biology,68,8,7,0,12,group
+3,Yes,Yes,No,22,Environmental Science,69,3,20,4,15,Individual
+4,No,Yes,No,34,Biology,70,5,35,0,12,Individual
+5,Yes,Yes,Yes,27,Botany,60,45,50,6,13,group
+6,Yes,No,Yes,28,Computer Science,72,12,12,12,9,group
+7,Yes,No,No,26,Environmental Science,67,10,20,5,16,Individual
+8,Yes,Yes,No,31,Environmental Science,69,90,30,7,12,group
+9,No,No,No,29,Environmental Science,60,4,50,20,12,Individual
+10,No,Yes,No,29,Neuroscience,63,2,84,1,21,Individual
+11,Yes,Yes,Yes,25,Biology,67,3,60,5,13,group
+12,Yes,No,No,23,Environmental Science,60,3,45,40,12,group
+13,Yes,Yes,No,28,Environmental Science,60,3,44,4,18,group
+14,Yes,Yes,Yes,26,Environmental Science,71,4,21,4,12,group
+15,No,Yes,No,21,Environmental Science,72,2,24,4,12,group
+16,Yes,Yes,Yes,37,Biology,74,10,20,1,12,Individual
+17,Yes,Yes,No,19,Environmental Science,66,65,30,10,15,group
+18,Yes,Yes,No,27,Environmental Science,65,4,18,10,13,group
+19,Yes,No,No,30,Engineering,72,3,30,3,15,group
+20,No,Yes,No,24,Environmental Science,65,3,8,2,10,group
+21,Yes,Yes,No,25,Computer Science,70,4,15,0,13,group
+22,No,Yes,No,47,Engineering,69,7,32,0,14,Individual
+23,No,No,No,20,Computer Science,71,3,25,10,13,Individual
+24,No,No,No,32,Computer Science ,66,20,45,25,6,group
+25,Yes,Yes,No,24,Computer Science,71,36000,40,10,12,group
+26,Yes,Yes,Yes,34,Engineering,63,3,15,10,9,Individual
